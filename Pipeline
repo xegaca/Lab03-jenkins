@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    environment {
+        AWS_CREDENTIALS_ID = 'jenkins-devops' 
+        S3_BUCKET = 'bucket-lab0703' 
+        FILE_NAME = 'archivo_prueba.txt'
+    }
+    stages {
+        stage('Preparar AWS CLI') {
+            steps {
+                // Instalar AWS CLI si no está disponible
+                sh 'which aws || pip install awscli'
+            }
+        }
+        stage('Crear archivo y conectarse a AWS') {
+            steps {
+                script {
+                    // Configura AWS CLI con las credenciales de Jenkins
+                    withAWS(credentials: "${AWS_CREDENTIALS_ID}") {
+                        // Crear un archivo de prueba
+                        writeFile file: "${FILE_NAME}", text: "Este es un archivo de prueba para subir a S3."
+                    }
+                }
+            }
+        }
+        stage('Subir archivo a S3') {
+            steps {
+                script {
+                    withAWS(credentials: "${AWS_CREDENTIALS_ID}") {
+                        // Subir el archivo al bucket S3
+                        sh "aws s3 cp ${FILE_NAME} s3://${S3_BUCKET}/${FILE_NAME}"
+                    }
+                }
+            }
+        }
+        stage('Descargar archivo desde S3') {
+            steps {
+                script {
+                    withAWS(credentials: "${AWS_CREDENTIALS_ID}") {
+                        // Descargar el archivo desde S3
+                        sh "aws s3 cp s3://${S3_BUCKET}/${FILE_NAME} descargado_${FILE_NAME}"
+                    }
+                }
+            }
+        }
+        stage('Verificar descarga') {
+            steps {
+                script {
+                    // Verificar que el archivo fue descargado correctamente
+                    sh "cat descargado_${FILE_NAME}"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Limpiar archivos temporales
+            deleteDir()
+        }
+    }
+}
