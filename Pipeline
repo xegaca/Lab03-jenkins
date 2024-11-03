@@ -6,12 +6,12 @@ pipeline {
         FILE_NAME = 'archivo_prueba.txt'
     }
     stages {
-        stage('Preparar AWS CLI') {
-            steps {
-                // Instalar AWS CLI si no está disponible
-                sh 'which aws || pip install awscli'
-            }
-        }
+        // stage('Preparar AWS CLI') {
+        //     steps {
+        //         // Instalar AWS CLI si no está disponible
+        //         sh 'which aws || pip install awscli'
+        //     }
+        // }
         stage('Crear archivo y conectarse a AWS') {
             steps {
                 script {
